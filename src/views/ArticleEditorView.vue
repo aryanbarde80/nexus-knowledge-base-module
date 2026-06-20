@@ -82,8 +82,8 @@ function addImage() {
   if (src) editor.value?.chain().focus().setImage({ src }).run();
 }
 
-function save(nextStatus = status.value) {
-  const id = store.saveArticle({
+async function save(nextStatus = status.value) {
+  const id = await store.saveArticle({
     id: existing.value?.id,
     title: title.value,
     categoryId: categoryId.value,
@@ -92,7 +92,7 @@ function save(nextStatus = status.value) {
     tags: tags.value.split(',').map((tag) => tag.trim()).filter(Boolean),
     content: editor.value?.getHTML() || ''
   });
-  router.push(`/articles/${id}`);
+  if (id) router.push(`/articles/${id}`);
 }
 
 onBeforeUnmount(() => editor.value?.destroy());

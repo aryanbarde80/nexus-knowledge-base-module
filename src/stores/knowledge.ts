@@ -4,6 +4,12 @@ import { useDebounceFn } from '@vueuse/core';
 import { activities as seedActivities, articles as seedArticles, categories as seedCategories, tags as seedTags, users, versions as seedVersions, type Article, type ArticleStatus } from '../data/mock';
 
 const apiBase = import.meta.env.VITE_API_BASE || '/api';
+const headers = {
+  'content-type': 'application/json',
+  'x-user-id': 'u1',
+  'x-user-role': 'Admin',
+  'x-user-email': 'aryan@nexus.local'
+};
 
 export const useKnowledgeStore = defineStore('knowledge', () => {
   const articles = ref<Article[]>(seedArticles);
@@ -15,6 +21,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const selectedCategory = ref<string>('all');
   const selectedStatus = ref<ArticleStatus | 'All'>('All');
   const loading = ref(false);
+  const saving = ref(false);
   const error = ref<string | null>(null);
   const recentSearches = ref<string[]>(['purchase order', 'leave policy', 'onboarding']);
 
@@ -45,37 +52,84 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   function authorName(id: string) {
-    return users.find((user) => user.id === id)?.name || 'Unknown';
+    return users.find((user) => user.id === id)?.name || 'Nexus Admin';
   }
 
   function authorAvatar(id: string) {
     return users.find((user) => user.id === id)?.avatar || 'NX';
   }
 
-  function toggleFavorite(articleId: string) {
+  async function apiJson<T>(path: string, init?: RequestInit): Promise<T | null> {
+    try {
+      const response = await fetch(`${apiBase}${path}`, {
+        ...init,
+        headers: { ...headers, ...(init?.headers || {}) }
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return (await response.json()) as T;
+    } catch (caught) {
+      error.value = caught instanceof Error ? caught.message : 'API request failed. Using local data.';
+      return null;
+    }
+  }
+
+  async function toggleFavorite(articleId: string) {
     const article = articles.value.find((item) => item.id === articleId);
     if (article) article.favorite = !article.favorite;
+    await apiJson('/favorites', {
+      method: 'POST',
+      body: JSON.stringify({ articleId })
+    });
   }
 
-  function duplicateArticle(articleId: string) {
+  async function duplicateArticle(articleId: string) {
     const source = articles.value.find((item) => item.id === articleId);
     if (!source) return;
-    const copy = {
+    await saveArticle({
       ...source,
-      id: crypto.randomUUID(),
+      id: undefined,
       title: `${source.title} Copy`,
-      slug: `${source.slug}-copy`,
-      status: 'Draft' as ArticleStatus,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      slug: `${source.slug}-copy-${Date.now()}`,
+      status: 'Draft',
       views: 0,
       favorite: false
-    };
-    articles.value.unshift(copy);
+    });
   }
 
-  function saveArticle(payload: Partial<Article>) {
+  async function saveArticle(payload: Partial<Article>) {
+    saving.value = true;
+    error.value = null;
     const now = new Date().toISOString();
+    const normalized = {
+      ...payload,
+      title: payload.title || 'Untitled Document',
+      slug: payload.slug || (payload.title || 'untitled-document').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      content: payload.content || '<h1>Untitled Document</h1><p>Start writing...</p>',
+      categoryId: payload.categoryId || 'sops',
+      tags: payload.tags || ['SOP'],
+      status: payload.status || 'Draft',
+      visibility: payload.visibility || 'Company'
+    };
+
+    try {
+      const response = await apiJson<{ article: Article }>(payload.id ? `/articles/${payload.id}` : '/articles', {
+        method: payload.id ? 'PUT' : 'POST',
+        body: JSON.stringify(normalized)
+      });
+
+      if (response?.article) {
+        const index = articles.value.findIndex((article) => article.id === response.article.id);
+        if (index >= 0) {
+          articles.value[index] = response.article;
+        } else {
+          articles.value.unshift(response.article);
+        }
+        return response.article.id;
+      }
+    } finally {
+      saving.value = false;
+    }
+
     if (payload.id) {
       const index = articles.value.findIndex((article) => article.id === payload.id);
       if (index >= 0) {
@@ -88,21 +142,15 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
           timestamp: now,
           summary: 'Saved document changes.'
         });
-        articles.value[index] = { ...previous, ...payload, updatedAt: now };
+        articles.value[index] = { ...previous, ...normalized, id: payload.id, updatedAt: now } as Article;
       }
       return payload.id;
     }
 
     const article: Article = {
+      ...(normalized as Article),
       id: crypto.randomUUID(),
-      title: payload.title || 'Untitled Document',
-      slug: (payload.title || 'untitled-document').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      content: payload.content || '<h1>Untitled Document</h1><p>Start writing...</p>',
-      categoryId: payload.categoryId || 'sops',
-      tags: payload.tags || ['SOP'],
       authorId: 'u1',
-      status: payload.status || 'Draft',
-      visibility: payload.visibility || 'Company',
       createdAt: now,
       updatedAt: now,
       views: 0,
@@ -112,12 +160,19 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     return article.id;
   }
 
-  function archiveArticle(articleId: string) {
-    saveArticle({ id: articleId, status: 'Archived' });
+  async function archiveArticle(articleId: string) {
+    await saveArticle({ id: articleId, status: 'Archived' });
   }
 
-  function publishArticle(articleId: string) {
-    saveArticle({ id: articleId, status: 'Published' });
+  async function publishArticle(articleId: string) {
+    await saveArticle({ id: articleId, status: 'Published' });
+  }
+
+  async function deleteArticle(articleId: string) {
+    const previous = [...articles.value];
+    articles.value = articles.value.filter((article) => article.id !== articleId);
+    const response = await apiJson<{ ok: boolean }>(`/articles/${articleId}`, { method: 'DELETE' });
+    if (!response?.ok) articles.value = previous;
   }
 
   const searchDebounced = useDebounceFn((value: string) => {
@@ -132,13 +187,16 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await fetch(`${apiBase}/articles`);
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data.articles)) articles.value = data.articles;
-      }
-    } catch {
-      error.value = 'Using local demo data until API environment variables are configured.';
+      const [articleData, categoryData, activityData, versionData] = await Promise.all([
+        apiJson<{ articles: Article[] }>('/articles'),
+        apiJson<{ categories: typeof seedCategories }>('/categories'),
+        apiJson<{ activity: typeof seedActivities }>('/activity'),
+        apiJson<{ versions: typeof seedVersions }>('/versions')
+      ]);
+      if (Array.isArray(articleData?.articles) && articleData.articles.length) articles.value = articleData.articles;
+      if (Array.isArray(categoryData?.categories) && categoryData.categories.length) categories.value = categoryData.categories;
+      if (Array.isArray(activityData?.activity) && activityData.activity.length) activities.value = activityData.activity;
+      if (Array.isArray(versionData?.versions) && versionData.versions.length) versions.value = versionData.versions;
     } finally {
       loading.value = false;
     }
@@ -172,6 +230,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     selectedCategory,
     selectedStatus,
     loading,
+    saving,
     error,
     recentSearches,
     stats,
@@ -186,6 +245,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     duplicateArticle,
     archiveArticle,
     publishArticle,
+    deleteArticle,
     saveArticle,
     searchDebounced,
     refresh,
