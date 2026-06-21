@@ -18,18 +18,18 @@ const growth = [18, 26, 33, 46, 59, 72];
 </script>
 
 <template>
-  <div class="space-y-7">
+  <div class="space-y-6">
     <section>
-      <h1 class="text-[40px] font-bold tracking-normal text-slate-950 dark:text-white">Knowledge Base</h1>
-      <p class="mt-2 text-lg text-slate-600 dark:text-slate-300">Manage SOPs, policies, onboarding, and operational documentation.</p>
+      <h1 class="text-[34px] font-bold tracking-normal text-slate-950 dark:text-white">Knowledge Base</h1>
+      <p class="mt-1 text-base text-slate-600 dark:text-slate-300">Manage SOPs, policies, onboarding, and operational documentation.</p>
     </section>
 
     <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <div v-for="metric in metricCards" :key="metric.label" class="card p-5">
+      <div v-for="metric in metricCards" :key="metric.label" class="card p-4">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-slate-500">{{ metric.label }}</p>
-            <p class="mt-2 text-3xl font-bold tracking-normal">{{ metric.value }}</p>
+            <p class="mt-2 text-2xl font-bold tracking-normal">{{ metric.value }}</p>
           </div>
           <div class="rounded-[12px] p-3" :class="metric.tone">
             <component :is="metric.icon" class="h-5 w-5" />
@@ -38,26 +38,26 @@ const growth = [18, 26, 33, 46, 59, 72];
       </div>
     </section>
 
-    <section class="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-      <div class="card p-5">
+    <section class="grid gap-5 xl:grid-cols-[1.5fr_1fr]">
+      <div class="card p-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold">Knowledge Growth Trend</h2>
+            <h2 class="text-base font-semibold">Knowledge Growth Trend</h2>
             <p class="text-sm text-slate-500">Articles created per month across Nexus ERP teams.</p>
           </div>
           <TrendingUp class="h-5 w-5 text-[#2673e8]" />
         </div>
-        <div class="mt-8 flex h-56 items-end gap-4">
+        <div class="mt-6 flex h-44 items-end gap-3">
           <div v-for="(value, index) in growth" :key="months[index]" class="flex flex-1 flex-col items-center gap-3">
-            <div class="w-full rounded-t-[10px] bg-[#2673e8] transition-all hover:bg-[#1f63cc]" :style="{ height: `${value * 2.1}px` }" />
+            <div class="w-full rounded-t-[8px] bg-[#2673e8] transition-all hover:bg-[#1f63cc]" :style="{ height: `${value * 1.65}px` }" />
             <span class="text-xs text-slate-500">{{ months[index] }}</span>
           </div>
         </div>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold">Most Accessed Categories</h2>
+          <h2 class="text-base font-semibold">Most Accessed Categories</h2>
           <BarChart3 class="h-5 w-5 text-slate-400" />
         </div>
         <div class="mt-5 space-y-4">
@@ -74,11 +74,11 @@ const growth = [18, 26, 33, 46, 59, 72];
       </div>
     </section>
 
-    <section class="grid gap-6 xl:grid-cols-3">
-      <div class="card p-5">
+    <section class="grid gap-5 xl:grid-cols-3">
+      <div class="card p-4">
         <div class="flex items-center gap-2">
           <Activity class="h-5 w-5 text-[#2673e8]" />
-          <h2 class="text-lg font-semibold">Recent Activity Feed</h2>
+          <h2 class="text-base font-semibold">Recent Activity Feed</h2>
         </div>
         <div class="mt-5 space-y-4">
           <div v-for="item in store.activities" :key="item.id" class="flex gap-3">
@@ -91,10 +91,10 @@ const growth = [18, 26, 33, 46, 59, 72];
         </div>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-4">
         <div class="flex items-center gap-2">
           <Users class="h-5 w-5 text-slate-500" />
-          <h2 class="text-lg font-semibold">Most Active Authors</h2>
+          <h2 class="text-base font-semibold">Most Active Authors</h2>
         </div>
         <div class="mt-5 space-y-3">
           <div v-for="authorId in ['u1', 'u2', 'u3']" :key="authorId" class="flex items-center justify-between rounded-[12px] border border-slate-100 p-3 dark:border-slate-800">
@@ -107,10 +107,10 @@ const growth = [18, 26, 33, 46, 59, 72];
         </div>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-4">
         <div class="flex items-center gap-2">
           <Bot class="h-5 w-5 text-[#2673e8]" />
-          <h2 class="text-lg font-semibold">AI Suggested Articles</h2>
+          <h2 class="text-base font-semibold">AI Suggested Articles</h2>
         </div>
         <div class="mt-5 space-y-3">
           <div v-for="article in store.mostViewed.slice(0, 4)" :key="article.id" class="rounded-[12px] bg-slate-50 p-3 dark:bg-slate-800">

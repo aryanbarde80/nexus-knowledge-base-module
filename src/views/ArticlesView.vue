@@ -16,28 +16,28 @@ function ask() {
 </script>
 
 <template>
-  <div class="space-y-7">
+  <div class="space-y-6">
     <section class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 class="text-[40px] font-bold tracking-normal text-slate-950 dark:text-white">Articles</h1>
-        <p class="mt-2 text-lg text-slate-600 dark:text-slate-300">Search, publish, and organize internal Nexus ERP knowledge.</p>
+        <h1 class="text-[34px] font-bold tracking-normal text-slate-950 dark:text-white">Articles</h1>
+        <p class="mt-1 text-base text-slate-600 dark:text-slate-300">Search, publish, and organize internal Nexus ERP knowledge.</p>
       </div>
       <RouterLink to="/articles/new" class="btn-primary"><FilePlus2 class="h-4 w-4" />Add article</RouterLink>
     </section>
 
-    <div class="grid gap-6 xl:grid-cols-[260px_1fr_340px]">
+    <div class="grid gap-5 xl:grid-cols-[240px_1fr_315px]">
       <aside class="space-y-4">
-        <div class="card p-4">
+        <div class="card p-3.5">
           <div class="flex items-center justify-between">
             <h2 class="font-semibold">Categories</h2>
             <FolderTree class="h-4 w-4 text-slate-400" />
           </div>
-          <div class="mt-4 space-y-1">
-            <button class="flex w-full items-center justify-between rounded-[12px] px-3 py-2.5 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" :class="{ 'bg-[#dfeafa] text-[#073b76] dark:bg-nexus-950 dark:text-nexus-100': store.selectedCategory === 'all' }" @click="store.selectedCategory = 'all'">
+          <div class="mt-3 space-y-1">
+            <button class="flex w-full items-center justify-between rounded-[11px] px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" :class="{ 'bg-[#dfeafa] text-[#073b76] dark:bg-nexus-950 dark:text-nexus-100': store.selectedCategory === 'all' }" @click="store.selectedCategory = 'all'">
               All Articles <span>{{ store.articles.length }}</span>
             </button>
             <div v-for="category in rootCategories" :key="category.id">
-              <button class="flex w-full items-center justify-between rounded-[12px] px-3 py-2.5 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" :class="{ 'bg-[#dfeafa] text-[#073b76] dark:bg-nexus-950 dark:text-nexus-100': store.selectedCategory === category.id }" @click="store.selectedCategory = category.id">
+              <button class="flex w-full items-center justify-between rounded-[11px] px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" :class="{ 'bg-[#dfeafa] text-[#073b76] dark:bg-nexus-950 dark:text-nexus-100': store.selectedCategory === category.id }" @click="store.selectedCategory = category.id">
                 <span class="flex items-center gap-2"><span class="h-2 w-2 rounded-full" :style="{ backgroundColor: category.color }" />{{ category.name }}</span>
                 <span>{{ category.articleCount }}</span>
               </button>
@@ -50,7 +50,7 @@ function ask() {
           </div>
         </div>
 
-        <div class="card p-4">
+        <div class="card p-3.5">
           <h2 class="font-semibold">Quick Access</h2>
           <div class="mt-3 space-y-2">
             <RouterLink v-for="article in store.favorites" :key="article.id" :to="`/articles/${article.id}`" class="block rounded-[12px] bg-slate-50 p-2 text-sm hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
@@ -61,7 +61,7 @@ function ask() {
       </aside>
 
       <section class="space-y-4">
-        <div class="soft-card p-4">
+        <div class="soft-card p-3.5">
           <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div class="relative flex-1">
               <Search class="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -93,7 +93,7 @@ function ask() {
           <RouterLink to="/articles/new" class="btn-primary mt-4">Create Article</RouterLink>
         </div>
 
-        <article v-for="article in store.filteredArticles" v-else :key="article.id" class="card p-5 transition hover:border-blue-200 hover:shadow-enterprise dark:hover:border-nexus-900">
+        <article v-for="article in store.filteredArticles" v-else :key="article.id" class="card p-4 transition hover:border-blue-200 hover:shadow-enterprise dark:hover:border-nexus-900">
           <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <div class="flex flex-wrap items-center gap-2">
@@ -101,7 +101,7 @@ function ask() {
                 <span class="text-xs text-slate-500">{{ store.categoryName(article.categoryId) }}</span>
                 <span class="text-xs text-slate-500">{{ article.visibility }}</span>
               </div>
-              <RouterLink :to="`/articles/${article.id}`" class="mt-2 block text-xl font-bold hover:text-[#2673e8]">{{ article.title }}</RouterLink>
+              <RouterLink :to="`/articles/${article.id}`" class="mt-2 block text-lg font-bold hover:text-[#2673e8]">{{ article.title }}</RouterLink>
               <p class="mt-2 line-clamp-2 text-sm text-slate-500" v-html="article.content.replace(/<[^>]*>/g, ' ').slice(0, 180)" />
               <div class="mt-4 flex flex-wrap items-center gap-2">
                 <span v-for="tag in article.tags" :key="tag" class="rounded-[10px] bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">#{{ tag }}</span>
@@ -122,7 +122,7 @@ function ask() {
       </section>
 
       <aside class="space-y-4">
-        <div class="card p-4">
+        <div class="card p-3.5">
           <div class="flex items-center gap-2">
             <Bot class="h-5 w-5 text-[#2673e8]" />
             <h2 class="font-semibold">AI Knowledge Assistant</h2>
@@ -140,7 +140,7 @@ function ask() {
           </div>
         </div>
 
-        <div class="card p-4">
+        <div class="card p-3.5">
           <h2 class="font-semibold">Upload Center</h2>
           <div class="mt-4 rounded-[14px] border border-dashed border-slate-300 p-6 text-center dark:border-slate-700">
             <UploadCloud class="mx-auto h-8 w-8 text-slate-400" />
@@ -149,7 +149,7 @@ function ask() {
           </div>
         </div>
 
-        <div class="card p-4">
+        <div class="card p-3.5">
           <div class="flex items-center gap-2">
             <History class="h-4 w-4 text-slate-400" />
             <h2 class="font-semibold">Version History</h2>
